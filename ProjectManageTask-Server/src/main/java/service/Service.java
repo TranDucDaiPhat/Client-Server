@@ -1,28 +1,50 @@
 package service;
 
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JTextArea;
+
+import model.Account;
 
 public class Service {
 
 	private static Service instance;
-	private JTextArea textArea;
+	private static Map<Account, ObjectOutputStream> clients = new HashMap<>();
 	
-	public static Service getInstance(JTextArea textArea) {
+	public static Service getInstance() {
 		if (instance == null) {
-			instance = new Service(textArea);
+			instance = new Service();
 		}
 		return instance;
 	}
 	
-	private Service(JTextArea textArea) {
-		this.textArea = textArea;
+	private Service() {
 	}
 	
-	public void startServer(int portNumber) {
+	public ObjectOutputStream getClientOutputStreamByRole(String role) {
+		for (Map.Entry<Account, ObjectOutputStream> entry : clients.entrySet()) {
+	        if (entry.getKey().getRole().equals(role)) {
+	            return entry.getValue();
+	        }
+	    }
+	    return null; 
+	}
+	
+	public void removeClientOutputStream(Account acc) {
+		clients.remove(acc);
+	}
+
+	
+	public void addClient(Account acc, ObjectOutputStream out) {
+		clients.put(acc, out);
+	}
+	
+	public void startServer(int portNumber, JTextArea textArea) {
 		try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
             textArea.setText("Server đang lắng nghe trên cổng " + portNumber + "\n");
             

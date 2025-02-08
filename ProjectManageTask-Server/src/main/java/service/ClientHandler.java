@@ -12,12 +12,14 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Persistence;
 import model.Account;
 import model.Request;
+import model.User;
 
 // Xử lý tất cả truyền nhận dữ liệu giữa client và server tại đây
 public class ClientHandler extends Thread {
 	private Socket clientSocket;
 	private JTextArea textArea;
 	private EntityManager em;
+	private Account account;
 
 	public ClientHandler(Socket socket, JTextArea textArea) {
 		this.clientSocket = socket;
@@ -49,6 +51,11 @@ public class ClientHandler extends Thread {
 	    					// Nếu có trả về thông tin account, ngược lại trả về null
 							ServiceUser serviceUser = new ServiceUser(em);
 							Account acc = serviceUser.login(accReceive.getAccountName(), accReceive.getPassword());
+							if (acc != null) {
+								Service.getInstance().addClient(acc, out);
+								this.account = acc;
+							}
+							
 							// Tạo request (hoặc gọi là response) mới để gửi về client
 							Request<Account> response = new Request<Account>(message, acc);
 							// Gửi dữ liệu
@@ -57,9 +64,35 @@ public class ClientHandler extends Thread {
 						} else {
 							// Gửi request dữ liệu nhận được không hợp lệ
 						}
-
 						break;
-
+					
+					case "REGISTER": // Tạo tài khoản
+						if (request.getData() instanceof Account) {
+							// Nhận account từ client
+							Account accReceive = (Account) request.getData();
+							textArea.append("accountName: " + accReceive.getAccountName() + "\n");
+							textArea.append("password: " + accReceive.getPassword() + "\n");
+							ObjectOutputStream outManager = Service.getInstance().getClientOutputStreamByRole("Manager");
+							if (outManager != null) {
+								Request<Account> response = new Request<Account>("REGISTER", accReceive);
+								// Gửi thông báo đến Manager
+								outManager.writeObject(response);
+								outManager.flush();
+							} else {
+								textArea.append("Thông báo: Manager không hoạt động" + "\n");
+							}
+						}
+						break;
+						
+					case "CREATE_ACCOUNT":
+						// Nhận account từ client
+						Account accReceive = (Account) request.getData();
+						User user = accReceive.getUser();
+						textArea.append("account: " + accReceive + "\n");
+						textArea.append("user: " + user + "\n");
+						ServiceUser serviceUser = new ServiceUser(em);
+						serviceUser.createAccount(accReceive);
+						break;
 					default:
 						break;
 					}
@@ -67,7 +100,8 @@ public class ClientHandler extends Thread {
 			}
 
 		} catch (SocketException e) {
-			textArea.append("Client ngắt kết nối!");
+			textArea.append("Client ngắt kết nối!\n");
+			Service.getInstance().removeClientOutputStream(account);
 		} catch (IOException | ClassNotFoundException e) {
 			e.printStackTrace();
 		} finally {

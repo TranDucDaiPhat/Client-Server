@@ -59,6 +59,16 @@ public class Service {
 								}
 								break;
 								
+							case "REGISTER":
+								if (request.getData() == null) {
+									System.out.println("Đăng ký thất bại");
+								} else if (request.getData() instanceof Account) {
+									// Gửi dữ liệu đến giao diện 
+									notifyListeners(request);
+								} else {
+									// Response nhận được dữ liệu không hợp lệ
+								}
+								break;
 							default:
 								break;
 							}

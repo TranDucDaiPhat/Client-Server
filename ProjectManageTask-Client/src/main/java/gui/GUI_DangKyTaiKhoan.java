@@ -11,6 +11,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.time.LocalDate;
 import java.util.Calendar;
 
 import javax.swing.Box;
@@ -27,6 +28,11 @@ import design.Constants;
 import design.RoundedPasswordField;
 import design.RoundedTextField;
 import design.TextBubbleBorder;
+import model.Account;
+import model.Gender;
+import model.Request;
+import model.User;
+import service.Service;
 
 public class GUI_DangKyTaiKhoan extends JFrame implements ActionListener, MouseListener{
 
@@ -49,6 +55,8 @@ public class GUI_DangKyTaiKhoan extends JFrame implements ActionListener, MouseL
 	private RoundedPasswordField TxtMatKhau;
 	private RoundedPasswordField TxtNhapLaiMK;
 	private JButton btnDone;
+	private JComboBox<Integer> cbYearOfBirth;
+	private JComboBox<Gender> cbGender;
 	
 	public GUI_DangKyTaiKhoan(GUI_Dang_Nhap gui) {
 		super("Đăng ký");
@@ -107,16 +115,13 @@ public class GUI_DangKyTaiKhoan extends JFrame implements ActionListener, MouseL
 		lblGioiTinh.setMaximumSize(new Dimension(200,35));
 		
 		// cbo Năm sinh và Giới tính
-		JComboBox<Integer> cbYearOfBirth = new JComboBox<>();
-		JComboBox<String> cbGender = new JComboBox<>();
+		cbYearOfBirth = new JComboBox<>();
         int currentYear = Calendar.getInstance().get(Calendar.YEAR);
         int oldestYear = currentYear-100;
         for (int year = currentYear; year > oldestYear; year--) {
             cbYearOfBirth.addItem(year); 
         }
-        cbGender.addItem("Male");
-        cbGender.addItem("Female");
-        cbGender.addItem("Other");
+        cbGender = new JComboBox<Gender>(Gender.values());
         b.add(Box.createVerticalStrut(5));
 		b.add(b6 = Box.createHorizontalBox());
 		b6.add(cbYearOfBirth);
@@ -197,7 +202,9 @@ public class GUI_DangKyTaiKhoan extends JFrame implements ActionListener, MouseL
 		cbGender.setCursor(cursor);
 		cbYearOfBirth.setCursor(cursor);
 		
+		// add action
 		btnDone.addMouseListener(this);
+		btnDone.addActionListener(this);
 		
 		pCen.add(b);
 		add(pCen);
@@ -211,6 +218,49 @@ public class GUI_DangKyTaiKhoan extends JFrame implements ActionListener, MouseL
 		setSize(570, 630);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setLocationRelativeTo(null);
+	}
+	
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		Object o = e.getSource();
+		// Nếu nhấn vào nút Gửi yêu cầu
+		if (o.equals(btnDone)) {
+			Account acc = getDataInput();
+			if (acc != null) {
+				Request<Account> request = new Request<Account>("REGISTER", acc);
+				Service.getInstance().sendMessage(request);
+			}
+		}
+	}
+	
+	private Account getDataInput() {
+		Account acc = new Account();
+		try {
+			// Lấy mật khẩu
+			char[] passwordChars = TxtMatKhau.getPassword();
+			String password = new String(passwordChars);
+			
+			char[] nhapLaiMKChars = TxtMatKhau.getPassword();
+			String nhapLaiMK = new String(nhapLaiMKChars);
+			
+			String tenTK = TxtTenTaiKhoan.getText().trim();
+			String tenNV = txtHoTen.getText().trim();
+			Gender gender = (Gender) cbGender.getSelectedItem();
+			int tuoi = LocalDate.now().getYear() - Integer.parseInt(cbYearOfBirth.getSelectedItem().toString());
+			String email = txtEmail.getText().trim();
+			
+			User user = new User(tenNV, gender, tuoi, email, null);
+			acc.setAccountName(tenTK);
+			acc.setPassword(password);
+			acc.setRole("Employee");
+			acc.setUser(user);
+			
+		} catch (Exception e) {
+			System.out.println("Lỗi nhập dữ liệu!");
+			e.printStackTrace();
+			return null;
+		}
+		return acc;
 	}
 
 	@Override
@@ -236,11 +286,5 @@ public class GUI_DangKyTaiKhoan extends JFrame implements ActionListener, MouseL
 		if (o.equals(btnDone)) {
 			btnDone.setBackground(new java.awt.Color(255,153,0));
 		}
-	}
-
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 }

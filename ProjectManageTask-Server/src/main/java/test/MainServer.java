@@ -24,7 +24,7 @@ public class MainServer {
 		
 		int portNumber = 12345;
 		try {
-            Service.getInstance(txt).startServer(portNumber);
+            Service.getInstance().startServer(portNumber, txt);
         } catch (Exception e) {
             e.printStackTrace();
             txt.append("Error: " + e + "\n");

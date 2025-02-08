@@ -24,8 +24,11 @@ import javax.swing.border.EmptyBorder;
 
 import design.Constants;
 import model.Account;
+import model.Request;
+import service.MessageListener;
+import service.Service;
 
-public class GUI_TrangChu extends JFrame implements ActionListener, MouseListener{
+public class GUI_TrangChu extends JFrame implements ActionListener, MouseListener, MessageListener{
 	
 	public static void screenTrangChu(Account account) { 
 		EventQueue.invokeLater(new Runnable() {
@@ -44,13 +47,13 @@ public class GUI_TrangChu extends JFrame implements ActionListener, MouseListene
 	private JList<String> menuList;
 	private DefaultListModel<String> listModel;
 	private JPanel currentPanel;
-	private String role;
+	private Account account;
 
 	public GUI_TrangChu(Account account) {
 		super(account.getRole());
+		this.account = account;
 		
 		// Giao diện trang chủ sẽ hiển thị dựa theo role
-		this.role = account.getRole();
 		Font font = Constants.DEFAULT_FONT;
 		
 		// Tạo menu và đặt bên trái màn hình
@@ -60,7 +63,7 @@ public class GUI_TrangChu extends JFrame implements ActionListener, MouseListene
         listModel.addElement("    Cá Nhân");
         
         // Menu sẽ hiển thị danh sách nhân viên nếu user có role là manager
-        if (role.equals("Manager")) {
+        if (account.getRole().equals("Manager")) {
         	listModel.addElement("    Nhân Viên");
         }
         
@@ -108,8 +111,12 @@ public class GUI_TrangChu extends JFrame implements ActionListener, MouseListene
         Cursor cursor = new Cursor(Cursor.HAND_CURSOR); 
 		menuList.setCursor(cursor);
         
+		// add action
         menuList.addMouseListener(this);
         
+        // Thêm sự kiện để lắng nghe dữ liệu trả về từ server
+     	Service.getInstance().addMessageListener(this);
+     		
         // set panel hiện tại (giao diện Danh sách các Project)
         currentPanel = pCen;
         add(currentPanel, BorderLayout.CENTER);
@@ -121,7 +128,7 @@ public class GUI_TrangChu extends JFrame implements ActionListener, MouseListene
 	}
 	
 	public String getRole() {
-		return role;
+		return account.getRole();
 	}
 	
 	// Hàm set Panel để di chuyển giữa các Panel. Hàm sẽ được gọi trong các class Panel
@@ -176,4 +183,23 @@ public class GUI_TrangChu extends JFrame implements ActionListener, MouseListene
 
 	@Override
 	public void mouseExited(MouseEvent e) {}
+
+	@Override
+	public void onMessageReceived(Request<?> request) {
+		String message = request.getMessage();
+		if (message.equals("REGISTER")) {
+			Object[] options = {"Huỷ","Xem"};
+			int n = JOptionPane.showOptionDialog(this, 
+					"Bạn vừa nhận được một yêu cầu đăng ký tài khoản", 
+					"Chú ý", 
+					JOptionPane.YES_NO_OPTION, 
+					JOptionPane.PLAIN_MESSAGE, 
+					null, options, options[1]);
+			if (n == 1) {
+				Account acc = (Account) request.getData();
+				acc.getUser().setManager((account.getUser()));;
+				GUI_DuyetYeuCau.screenDuyetYeuCau(acc);
+			}
+		}
+	}
 }

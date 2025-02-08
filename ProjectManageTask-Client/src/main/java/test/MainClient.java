@@ -1,7 +1,6 @@
 package test;
 
 import gui.GUI_Dang_Nhap;
-import model.Account;
 import service.Service;
 
 public class MainClient {

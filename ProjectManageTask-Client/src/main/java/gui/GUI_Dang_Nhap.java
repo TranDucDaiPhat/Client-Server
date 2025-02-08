@@ -21,8 +21,6 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.border.AbstractBorder;
 
-import com.google.gson.Gson;
-
 import design.Constants;
 import design.RoundedPasswordField;
 import design.RoundedTextField;
@@ -137,8 +135,8 @@ public class GUI_Dang_Nhap extends JFrame implements MouseListener, ActionListen
 		add(pCen);
 		
 		// test
-//		txtTaiKhoan.setText("kristiepaucek");
-//		txtMatKhau.setText("834466110689");
+		txtTaiKhoan.setText("kristiepaucek");
+		txtMatKhau.setText("834466110689");
 		
 		// Thêm sự kiện để lắng nghe dữ liệu trả về từ server
 		Service.getInstance().addMessageListener(this);
