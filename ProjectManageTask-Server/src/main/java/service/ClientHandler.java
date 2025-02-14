@@ -1,16 +1,22 @@
 package service;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketException;
 
 import javax.swing.JTextArea;
 
+import com.google.gson.Gson;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Persistence;
 import model.Account;
+import model.Message;
 import model.Request;
 import model.User;
 
@@ -30,7 +36,11 @@ public class ClientHandler extends Thread {
 	@Override
 	public void run() {
 		try (ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
-				ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream())) {
+			ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
+			BufferedReader inR = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+	        PrintWriter outW = new PrintWriter(clientSocket.getOutputStream(), true);
+			) {
+				
 			while (true) { // Lắng nghe liên tục
 				// Nếu nhận được dữ liệu từ client (Request)
 				Object receivedObj = in.readObject();
@@ -47,6 +57,10 @@ public class ClientHandler extends Thread {
 							Account accReceive = (Account) request.getData();
 							textArea.append("accountName: " + accReceive.getAccountName() + "\n");
 	    					textArea.append("password: " + accReceive.getPassword() + "\n");
+	    					String receivedJson = inR.readLine();
+	    					Gson gson = new Gson();
+	    					Message data = gson.fromJson(receivedJson, Message.class);
+	    					textArea.append(gson.fromJson(data.getData(), Account.class).toString());
 	    					// Tìm account trong cơ sở dữ liệu
 	    					// Nếu có trả về thông tin account, ngược lại trả về null
 							ServiceUser serviceUser = new ServiceUser(em);

@@ -1,14 +1,20 @@
 package service;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.gson.Gson;
+
 import model.Account;
+import model.Message;
 import model.Request;
 
 public class Service {
@@ -20,7 +26,9 @@ public class Service {
 	private Socket client;
 	// Danh sách các lớp implement MessageListener -> thông báo cho tất cả các lớp khi có dữ liệu
 	private List<MessageListener> listeners = new ArrayList<>();
-
+	BufferedReader in;
+	PrintWriter out;
+	
 	public static Service getInstance() {
 		if (instance == null) {
 			instance = new Service();
@@ -36,6 +44,8 @@ public class Service {
 			client = new Socket(ip, portNumber);
 			objectOutputStream = new ObjectOutputStream(client.getOutputStream());
 			objectInputStream = new ObjectInputStream(client.getInputStream());
+			in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+            out = new PrintWriter(client.getOutputStream(), true);
 			// Thread để lắng nghe dữ liệu từ server
 			new Thread(() -> {
 				try {
@@ -95,6 +105,10 @@ public class Service {
 			try {
 				objectOutputStream.writeObject(request);
 				objectOutputStream.flush();
+				
+				Gson gson = new Gson();
+				Message message = new Message("Register", gson.toJson(request.getData()));
+				out.println(gson.toJson(message));
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.out.println("Gặp lỗi trong khi gửi dữ liệu!");

@@ -77,7 +77,7 @@ public class GUI_DuyetYeuCau extends JFrame implements ActionListener{
 		String gioiTinh = "";
 		if (user.getGender() == Gender.MALE) {
 			gioiTinh = "Nam"; 
-		} else if (user.getGender() == Gender.FEMALE) {
+		} else if (user.getGender() == Gender.FAMALE) {
 			gioiTinh = "Nữ"; 
 		} else if (user.getGender() == Gender.OTHER) {
 			gioiTinh = "Khác"; 

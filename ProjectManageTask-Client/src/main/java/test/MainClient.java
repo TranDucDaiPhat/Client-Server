@@ -7,6 +7,7 @@ public class MainClient {
 
 	public static void main(String[] args) {
 		GUI_Dang_Nhap.screenDangNhap();
+		
 		try {
 			String ip = "localhost";
 			int portNumber = 12345;
