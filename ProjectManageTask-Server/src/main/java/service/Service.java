@@ -1,7 +1,7 @@
 package service;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
@@ -14,7 +14,7 @@ import model.Account;
 public class Service {
 
 	private static Service instance;
-	private static Map<Account, ObjectOutputStream> clients = new HashMap<>();
+	private static Map<Account, PrintWriter> clients = new HashMap<>();
 	
 	public static Service getInstance() {
 		if (instance == null) {
@@ -26,8 +26,8 @@ public class Service {
 	private Service() {
 	}
 	
-	public ObjectOutputStream getClientOutputStreamByRole(String role) {
-		for (Map.Entry<Account, ObjectOutputStream> entry : clients.entrySet()) {
+	public PrintWriter getClientOutputStreamByRole(String role) {
+		for (Map.Entry<Account, PrintWriter> entry : clients.entrySet()) {
 	        if (entry.getKey().getRole().equals(role)) {
 	            return entry.getValue();
 	        }
@@ -40,7 +40,7 @@ public class Service {
 	}
 
 	
-	public void addClient(Account acc, ObjectOutputStream out) {
+	public void addClient(Account acc, PrintWriter out) {
 		clients.put(acc, out);
 	}
 	
@@ -59,6 +59,6 @@ public class Service {
         } catch (IOException e) {
             e.printStackTrace();
             textArea.append("Error: " + e + "\n");
-        }
+        } 
 	}
 }

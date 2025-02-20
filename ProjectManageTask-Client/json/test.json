@@ -1,0 +1,11 @@
+{
+	"message": "REGISTER",
+	"data": {
+		"account": {
+			"id": 123,
+			"accountName": "tranphat",
+			"password": "123456",
+			"role": "Employee"
+		}
+	}
+}
