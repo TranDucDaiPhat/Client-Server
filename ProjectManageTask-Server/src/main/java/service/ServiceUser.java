@@ -23,6 +23,16 @@ public class ServiceUser {
 		return accDao.findAccountToLogin(username, password);
 	}
 	
+	// Tìm tên tài khoản có tồn tại hay chưa
+	public boolean isExistAccountName(String accountName) {
+		int row = accDao.findByAccountName(accountName);
+		// Nếu không tìm thấy
+		if (row == 0) {
+			return false;
+		}
+		return true;
+	}
+	
 	public boolean createAccount(Account acc) {
 	    EntityTransaction transaction = em.getTransaction();
 

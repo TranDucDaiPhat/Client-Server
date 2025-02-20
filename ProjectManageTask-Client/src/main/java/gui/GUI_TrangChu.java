@@ -20,6 +20,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 import design.Constants;
@@ -52,7 +53,6 @@ public class GUI_TrangChu extends JFrame implements ActionListener, MouseListene
 	public GUI_TrangChu(Account account) {
 		super(account.getRole());
 		this.account = account;
-		
 		// Giao diện trang chủ sẽ hiển thị dựa theo role
 		Font font = Constants.DEFAULT_FONT;
 		
@@ -168,8 +168,12 @@ public class GUI_TrangChu extends JFrame implements ActionListener, MouseListene
 			} else if (selectedValue.equals("Đăng Xuất")) {
 				int thongBao = JOptionPane.showConfirmDialog(null, "Bạn muốn Đăng xuất ? ","Chú ý",JOptionPane.YES_NO_OPTION);
 				if(thongBao == JOptionPane.YES_OPTION) {
-					dispose();
 					GUI_Dang_Nhap.screenDangNhap();
+					// Tắt giao diện sau khi sự kiện đã được xử lý xong
+			        SwingUtilities.invokeLater(() -> {
+			            Service.getInstance().removeMessageListener(this); // Gỡ bỏ listener
+			            dispose(); // Đóng giao diện
+			        });
 				}
 			} 
 		}
@@ -197,7 +201,7 @@ public class GUI_TrangChu extends JFrame implements ActionListener, MouseListene
 					null, options, options[1]);
 			if (n == 1) {
 				Account acc = (Account) request.getData();
-				acc.getUser().setManager((account.getUser()));;
+				acc.getUser().setManager(account.getUser());
 				GUI_DuyetYeuCau.screenDuyetYeuCau(acc);
 			}
 		}

@@ -15,6 +15,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.AbstractBorder;
 
+import com.google.gson.Gson;
+
 import design.Constants;
 import design.TextBubbleBorder;
 import model.Account;
@@ -22,6 +24,7 @@ import model.Gender;
 import model.Request;
 import model.User;
 import service.Service;
+import service.ServiceMessage;
 
 public class GUI_DuyetYeuCau extends JFrame implements ActionListener{
 	
@@ -142,8 +145,9 @@ public class GUI_DuyetYeuCau extends JFrame implements ActionListener{
 	public void actionPerformed(ActionEvent e) {
 		Object o = e.getSource();
 		if (o.equals(btnDuyet)) {
-			Request<Account> request = new Request<Account>("CREATE_ACCOUNT", account);
-			Service.getInstance().sendMessage(request);
+			ServiceMessage sm = ServiceMessage.getInstance();
+			Gson gson = new Gson();
+			Service.getInstance().sendMessage(sm.createMessage("CREATE_ACCOUNT", sm.createObjectJson("account", gson.toJson(account))));
 			dispose();
 		}
 		

@@ -3,8 +3,6 @@ package service;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.net.Socket;
@@ -48,7 +46,7 @@ public class ClientHandler extends Thread {
 				// Nếu nhận được dữ liệu từ client (Request)
 				String request = in.readLine();
 				if (request != null) {
-					textArea.append(request + "\n");
+					textArea.append("request: " + request + "\n");
 					try (JsonReader reader = Json.createReader(new StringReader(request))) {
 						JsonObject jo = reader.readObject();
 						if (jo != null) {
@@ -154,30 +152,84 @@ public class ClientHandler extends Thread {
 					textArea.append("Lỗi: Không tìm thấy dữ liệu!\n");
 					break;
 				}
-				JsonObject joAcc = joData.getJsonObject("account");
 				// Nếu không tìm thấy account
 				if (joData.isNull("account")) {
 					textArea.append("khong tim thay account");
 					break;
 				}
-				
+				JsonObject joAcc = joData.getJsonObject("account");
 				Gson gson = new Gson();
 				Account accReceive = gson.fromJson(joAcc.toString(), Account.class);
 				ServiceUser serviceUser = new ServiceUser(em);
-				Account acc = serviceUser.login(accReceive.getAccountName(), accReceive.getPassword());
+				Account acc = serviceUser.login(accReceive.getAccountName(), accReceive.getPassword());		
 				
 				if (acc != null) {
-					acc.getUser().setManagedUsers(null);
 					Service.getInstance().addClient(acc, out);
 					this.account = acc;
 				}
+				
 				ServiceMessage sm = ServiceMessage.getInstance();
 				String response = sm.createMessage("LOGIN", sm.createObjectJson("account", gson.toJson(acc)));
-				textArea.append(response + "\n");
+				textArea.append("response: " + response + "\n");
 				out.println(response);
 				out.flush();
+				break;
 			}
-		
+		case "REGISTER":
+			if (joData != null) {
+				if (!joData.containsKey("account")) {
+					textArea.append("Lỗi: Không tìm thấy dữ liệu!\n");
+					break;
+				}
+				// Nếu không tìm thấy account
+				if (joData.isNull("account")) {
+					textArea.append("khong tim thay account");
+					break;
+				}
+				textArea.append("response to manager" + "\n");
+				ServiceMessage sm = ServiceMessage.getInstance();
+				JsonObject joAcc = joData.getJsonObject("account");
+				ServiceUser service = new ServiceUser(em);
+				String response = "";
+				// Nếu đã tồn tại tên tài khoản thì không cho tạo
+				if (service.isExistAccountName(joAcc.getString("accountName"))) {
+					response = sm.createMessage("NOTIFY", sm.createObjectJson("notify", "\"Tên tài khoản đã tồn tại\""));
+					out.println(response);
+					out.flush();
+					break;
+				}
+				
+				PrintWriter outManager = Service.getInstance().getClientOutputStreamByRole("Manager");
+				if (outManager != null) {
+					// Gửi thông báo đến Manager
+					response = sm.createMessage("REGISTER", sm.createObjectJson("account", joData.getJsonObject("account").toString()));
+					outManager.println(response);
+					outManager.flush();
+				} else {
+					textArea.append("Thông báo: Manager không hoạt động" + "\n");
+				}
+				break;
+			}
+		case "CREATE_ACCOUNT":
+			if (joData != null) {
+				if (!joData.containsKey("account")) {
+					textArea.append("Lỗi: Không tìm thấy dữ liệu!\n");
+					break;
+				}
+				// Nếu không tìm thấy account
+				if (joData.isNull("account")) {
+					textArea.append("khong tim thay account");
+					break;
+				}
+				Gson gson = new Gson();
+				Account acc = gson.fromJson(joData.getJsonObject("account").toString(), Account.class);
+				User user = acc.getUser();
+				textArea.append("add account: " + acc);
+				textArea.append("add user: " + user);
+				ServiceUser serviceUser = new ServiceUser(em);
+				serviceUser.createAccount(acc);
+			}
+			break;
 		}
 	}
 }

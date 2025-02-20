@@ -19,10 +19,13 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import javax.swing.border.AbstractBorder;
+
+import com.google.gson.Gson;
 
 import design.Constants;
 import design.RoundedPasswordField;
@@ -32,9 +35,11 @@ import model.Account;
 import model.Gender;
 import model.Request;
 import model.User;
+import service.MessageListener;
 import service.Service;
+import service.ServiceMessage;
 
-public class GUI_DangKyTaiKhoan extends JFrame implements ActionListener, MouseListener{
+public class GUI_DangKyTaiKhoan extends JFrame implements ActionListener, MouseListener, MessageListener{
 
 	public static void screenDangKyTaiKhoan(GUI_Dang_Nhap gui) { 
 		EventQueue.invokeLater(new Runnable() {
@@ -206,6 +211,15 @@ public class GUI_DangKyTaiKhoan extends JFrame implements ActionListener, MouseL
 		btnDone.addMouseListener(this);
 		btnDone.addActionListener(this);
 		
+		txtHoTen.setText("tran phat");
+		txtEmail.setText("phat@gmail.com");
+		TxtMatKhau.setText("123456");
+		cbYearOfBirth.setSelectedIndex(22);
+		cbGender.setSelectedItem(Gender.MALE);
+		
+		// Thêm sự kiện để lắng nghe dữ liệu trả về từ server
+     	Service.getInstance().addMessageListener(this);
+		
 		pCen.add(b);
 		add(pCen);
 		
@@ -213,6 +227,7 @@ public class GUI_DangKyTaiKhoan extends JFrame implements ActionListener, MouseL
             @Override
             public void windowClosing(WindowEvent e) {
                 gui.setVisible(true);
+                Service.getInstance().removeMessageListener(GUI_DangKyTaiKhoan.this);
             }
         });
 		setSize(570, 630);
@@ -227,7 +242,9 @@ public class GUI_DangKyTaiKhoan extends JFrame implements ActionListener, MouseL
 		if (o.equals(btnDone)) {
 			Account acc = getDataInput();
 			if (acc != null) {
-				Request<Account> request = new Request<Account>("REGISTER", acc);
+				ServiceMessage sm = ServiceMessage.getInstance();
+				Gson gson = new Gson();
+				String request = sm.createMessage("REGISTER", sm.createObjectJson("account", gson.toJson(acc)));
 				Service.getInstance().sendMessage(request);
 			}
 		}
@@ -286,5 +303,13 @@ public class GUI_DangKyTaiKhoan extends JFrame implements ActionListener, MouseL
 		if (o.equals(btnDone)) {
 			btnDone.setBackground(new java.awt.Color(255,153,0));
 		}
+	}
+
+	@Override
+	public void onMessageReceived(Request<?> request) {
+		if (request.getMessage().equals("NOTIFY")) {
+			JOptionPane.showMessageDialog(this, "Tên tài khoản đã tồn tại. Vui lòng nhập tên khác!");
+		}
+		
 	}
 }

@@ -33,7 +33,6 @@ public class AccountDAO implements DAOInterface<Account> {
     
     public boolean delete(Account acc){
         try{
-            
             em.remove(acc);
             return true;
         }catch (Exception ex){
@@ -45,12 +44,24 @@ public class AccountDAO implements DAOInterface<Account> {
         return em.find(Account.class, id);
     }
     
-    public Account findAccountToLogin(String username, String password){
-    	String query = "SELECT acc FROM Account acc WHERE acc.accountName = :username and acc.password = :password";
+    public int findByAccountName(String accountName){
+    	String query = "SELECT COUNT(acc) FROM Account acc WHERE acc.accountName = :accountName";
+    	try {
+            return em.createQuery(query, Long.class)
+                    .setParameter("accountName", accountName)
+                    .getSingleResult().intValue();
+        } catch (Exception e) {
+        	e.printStackTrace();
+            return -1; 
+        }
+    }
+    
+    public Account findAccountToLogin(String accountName, String password){
+    	String query = "SELECT acc FROM Account acc WHERE acc.accountName = :accountName and acc.password = :password";
 
         try {
             return em.createQuery(query, Account.class)
-                    .setParameter("username", username)
+                    .setParameter("accountName", accountName)
                     .setParameter("password", password)
                     .getSingleResult();
         } catch (Exception e) {

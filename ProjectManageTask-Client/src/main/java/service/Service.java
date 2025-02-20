@@ -124,13 +124,41 @@ public class Service {
 				}
 				// Nếu có account
 				JsonObject joAcc = joData.getJsonObject("account");
+				Gson gson = new Gson();
+				Account accReceive = gson.fromJson(joAcc.toString(), Account.class);
+				Request<Account> request = new Request<Account>(message, accReceive);
+				notifyListeners(request);
+				break;
+			}
+		case "REGISTER":
+			if (joData != null) {
+				if (!joData.containsKey("account")) {
+					System.out.println("Lỗi: Không nhận được account!");
+					break;
+				}
+				// Nếu không tìm thấy account
+				if (joData.isNull("account")) {
+					System.out.println("khong tim thay account");
+					break;
+				}
+				// Nếu có account
+				JsonObject joAcc = joData.getJsonObject("account");
 				
 				Gson gson = new Gson();
 				Account accReceive = gson.fromJson(joAcc.toString(), Account.class);
 				Request<Account> request = new Request<Account>(message, accReceive);
 				notifyListeners(request);
+				break;
 			}
-		
+		// server gửi thông báo
+		case "NOTIFY":
+			if (joData != null) {
+				if (joData.containsKey("notify")) {
+					Request<String> request = new Request<String>(message, joData.getString("notify"));
+					notifyListeners(request);
+					break;
+				}
+			}
 		}
 	}
 	

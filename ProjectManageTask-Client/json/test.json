@@ -1,11 +1,21 @@
-{
+ {
 	"message": "REGISTER",
 	"data": {
 		"account": {
-			"id": 123,
-			"accountName": "tranphat",
-			"password": "123456",
-			"role": "Employee"
+			"account": {
+				"id": 0,
+				"accountName": "mr.warnerpadberg2",
+				"password": "123456",
+				"role": "Employee",
+				"user": {
+					"id": 0,
+					"name": "tran phat",
+					"gender": "MALE",
+					"age": 22,
+					"email": "phat@gmail.com",
+					"managedUsers": []
+				}
+			}
 		}
 	}
 }
